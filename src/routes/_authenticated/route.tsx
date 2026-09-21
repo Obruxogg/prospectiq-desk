@@ -1,4 +1,4 @@
-import { createFileRoute, redirect } from "@tanstack/react-router";
+import { createFileRoute, redirect, Outlet } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { IMShell } from "@/components/im/app-shell";
 
@@ -15,9 +15,5 @@ export const Route = createFileRoute("/_authenticated")({
     if (error || !data.user) throw redirect({ to: "/auth" });
     return { user: data.user };
   },
+  component: IMShell,
 });
-
-function ProtectedLayout() {
-  const { user } = Route.useRouteContext();
-  return <IMShell />;
-}

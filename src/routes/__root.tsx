@@ -121,18 +121,19 @@ function RootShell({ children }: { children: ReactNode }) {
   );
 }
 
-function RootComponent() {
+// Inner component that can safely use useQuery (lives inside QueryClientProvider)
+function AppProviders() {
   const { queryClient } = Route.useRouteContext();
-  const router = useRouter(); 
-  
-  useEffect(() => { 
-    const { data } = supabase.auth.onAuthStateChange((event) => { 
-      if (!["SIGNED_IN", "SIGNED_OUT", "USER_UPDATED"].includes(event)) return; 
-      router.invalidate(); 
-      if (event !== "SIGNED_OUT") queryClient.invalidateQueries(); 
-    }); 
-    return () => data.subscription.unsubscribe(); 
-  }, [queryClient, router]); 
+  const router = useRouter();
+
+  useEffect(() => {
+    const { data } = supabase.auth.onAuthStateChange((event) => {
+      if (!["SIGNED_IN", "SIGNED_OUT", "USER_UPDATED"].includes(event)) return;
+      router.invalidate();
+      if (event !== "SIGNED_OUT") queryClient.invalidateQueries();
+    });
+    return () => data.subscription.unsubscribe();
+  }, [queryClient, router]);
 
   const { data: authSession } = useQuery({
     queryKey: ["auth_session"],
@@ -146,7 +147,7 @@ function RootComponent() {
 
   const { data: profile } = useQuery({
     queryKey: ["profile", authUser?.id],
-    queryFn: () => authUser ? fetchProfileByAuthId(authUser.id) : null,
+    queryFn: () => (authUser ? fetchProfileByAuthId(authUser.id) : null),
     enabled: !!authUser,
   });
 
@@ -156,16 +157,24 @@ function RootComponent() {
   });
 
   return (
+    <IMProvider
+      authUser={authUser}
+      initialProfile={profile ?? null}
+      initialVisualSettings={visualSettings}
+    >
+      {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
+      <Outlet />
+      <Toaster richColors position="top-right" />
+    </IMProvider>
+  );
+}
+
+function RootComponent() {
+  const { queryClient } = Route.useRouteContext();
+
+  return (
     <QueryClientProvider client={queryClient}>
-      <IMProvider 
-        authUser={authUser} 
-        initialProfile={profile ?? null} 
-        initialVisualSettings={visualSettings}
-      >
-        {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-        <Outlet />
-        <Toaster richColors position="top-right" />
-      </IMProvider>
+      <AppProviders />
     </QueryClientProvider>
   );
 }

@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { CommercialApp } from "@/components/commercial-app";
 
-export const Route = createFileRoute("/")({
+export const Route = createFileRoute("/_authenticated/")({
   head: () => ({ meta: [
     { title: "Nexo Comercial | Gestão de cursos" },
     { name: "description", content: "Plataforma interna para simulações, propostas e CRM de cursos profissionalizantes." },
