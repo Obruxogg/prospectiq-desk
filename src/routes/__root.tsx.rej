@@ -1,0 +1,66 @@
+diff a/src/routes/__root.tsx b/src/routes/__root.tsx	(rejected hunks)
+@@ -11,11 +11,62 @@ function NotFoundComponent() { return <div className="error-page"><div><p classN
+ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) { const router = useRouter(); useEffect(() => { reportLovableError(error, { boundary: "tanstack_root_error_component" }); }, [error]); return <div className="error-page"><div><h1>Esta p├ígina n├úo carregou</h1><p>Algo n├úo saiu como esperado. Tente novamente.</p><Button onClick={() => { router.invalidate(); reset(); }}>Tentar novamente</Button></div></div>; }
+ 
+ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
+-  head: () => ({ meta: [{ charSet: "utf-8" }, { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover" }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" }], links: [{ rel: "stylesheet", href: appCss }, { rel: "preconnect", href: "https://fonts.googleapis.com" }, { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" }, { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Newsreader:opsz,wght@6..72,500;6..72,600&display=swap" }, { rel: "icon", href: "/favicon.ico", type: "image/x-icon" }] }),
++  head: () => ({ meta: [{ charSet: "utf-8" }, { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover" }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" }], links: [{ rel: "stylesheet", href: appCss }, { rel: "preconnect", href: "https://fonts.googleapis.com" }, { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" }, { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" }, { rel: "icon", href: "/favicon.ico", type: "image/x-icon" }] }),
+   shellComponent: RootShell,
+   component: RootComponent,
+   notFoundComponent: NotFoundComponent,
+   errorComponent: ErrorComponent,
+ });
+ function RootShell({ children }: { children: ReactNode }) { return <html lang="pt-BR"><head><HeadContent /></head><body>{children}<Scripts /></body></html>; }
+-function RootComponent() { const { queryClient } = Route.useRouteContext(); const router = useRouter(); useEffect(() => { const { data } = supabase.auth.onAuthStateChange((event) => { if (!["SIGNED_IN", "SIGNED_OUT", "USER_UPDATED"].includes(event)) return; router.invalidate(); if (event !== "SIGNED_OUT") queryClient.invalidateQueries(); }); return () => data.subscription.unsubscribe(); }, [queryClient, router]); return <QueryClientProvider client={queryClient}><Outlet /><Toaster position="top-right" richColors /></QueryClientProvider>; }
++
++import { IMProvider } from "@/components/im/im-context";
++import { useQuery } from "@tanstack/react-query";
++import { fetchVisualSettings, fetchProfileByAuthId } from "@/components/im/im-service";
++
++function RootComponent() { 
++  const { queryClient } = Route.useRouteContext(); 
++  const router = useRouter(); 
++  
++  useEffect(() => { 
++    const { data } = supabase.auth.onAuthStateChange((event) => { 
++      if (!["SIGNED_IN", "SIGNED_OUT", "USER_UPDATED"].includes(event)) return; 
++      router.invalidate(); 
++      if (event !== "SIGNED_OUT") queryClient.invalidateQueries(); 
++    }); 
++    return () => data.subscription.unsubscribe(); 
++  }, [queryClient, router]); 
++
++  const { data: authSession } = useQuery({
++    queryKey: ["auth_session"],
++    queryFn: async () => {
++      const { data } = await supabase.auth.getSession();
++      return data.session;
++    },
++  });
++
++  const authUser = authSession?.user ?? null;
++
++  const { data: profile } = useQuery({
++    queryKey: ["profile", authUser?.id],
++    queryFn: () => authUser ? fetchProfileByAuthId(authUser.id) : null,
++    enabled: !!authUser,
++  });
++
++  const { data: visualSettings } = useQuery({
++    queryKey: ["visual_settings"],
++    queryFn: fetchVisualSettings,
++  });
++
++  return (
++    <QueryClientProvider client={queryClient}>
++      <IMProvider 
++        authUser={authUser} 
++        initialProfile={profile ?? null} 
++        initialVisualSettings={visualSettings}
++      >
++        <Outlet />
++        <Toaster position="top-right" richColors />
++      </IMProvider>
++    </QueryClientProvider>
++  ); 
++}
