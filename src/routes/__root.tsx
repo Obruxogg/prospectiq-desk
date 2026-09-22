@@ -12,10 +12,6 @@ import { useEffect, type ReactNode } from "react";
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { Toaster } from "@/components/ui/sonner";
-import { supabase } from "@/integrations/supabase/client";
-import { IMProvider } from "@/components/im/im-context";
-import { useQuery } from "@tanstack/react-query";
-import { fetchVisualSettings, fetchProfileByAuthId } from "@/components/im/im-service";
 
 function NotFoundComponent() {
   return (
@@ -97,7 +93,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
-      { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" },
+      { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=Sora:wght@500;600;700&display=swap" },
       { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
     ],
   }),
@@ -109,7 +105,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 
 function RootShell({ children }: { children: ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="pt-BR">
       <head>
         <HeadContent />
       </head>
@@ -121,51 +117,12 @@ function RootShell({ children }: { children: ReactNode }) {
   );
 }
 
-// Inner component that can safely use useQuery (lives inside QueryClientProvider)
 function AppProviders() {
-  const { queryClient } = Route.useRouteContext();
-  const router = useRouter();
-
-  useEffect(() => {
-    const { data } = supabase.auth.onAuthStateChange((event) => {
-      if (!["SIGNED_IN", "SIGNED_OUT", "USER_UPDATED"].includes(event)) return;
-      router.invalidate();
-      if (event !== "SIGNED_OUT") queryClient.invalidateQueries();
-    });
-    return () => data.subscription.unsubscribe();
-  }, [queryClient, router]);
-
-  const { data: authSession } = useQuery({
-    queryKey: ["auth_session"],
-    queryFn: async () => {
-      const { data } = await supabase.auth.getSession();
-      return data.session;
-    },
-  });
-
-  const authUser = authSession?.user ?? null;
-
-  const { data: profile } = useQuery({
-    queryKey: ["profile", authUser?.id],
-    queryFn: () => (authUser ? fetchProfileByAuthId(authUser.id) : null),
-    enabled: !!authUser,
-  });
-
-  const { data: visualSettings } = useQuery({
-    queryKey: ["visual_settings"],
-    queryFn: fetchVisualSettings,
-  });
-
   return (
-    <IMProvider
-      authUser={authUser}
-      initialProfile={profile ?? null}
-      initialVisualSettings={visualSettings}
-    >
-      {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
+    <>
       <Outlet />
       <Toaster richColors position="top-right" />
-    </IMProvider>
+    </>
   );
 }
 
