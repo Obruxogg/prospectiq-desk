@@ -12,10 +12,6 @@ import { useEffect, type ReactNode } from "react";
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { Toaster } from "@/components/ui/sonner";
-import { supabase } from "@/integrations/supabase/client";
-import { IMProvider } from "@/components/im/im-context";
-import { useQuery } from "@tanstack/react-query";
-import { fetchVisualSettings, fetchProfileByAuthId } from "@/components/im/im-service";
 
 function NotFoundComponent() {
   return (
@@ -121,51 +117,12 @@ function RootShell({ children }: { children: ReactNode }) {
   );
 }
 
-// Inner component that can safely use useQuery (lives inside QueryClientProvider)
 function AppProviders() {
-  const { queryClient } = Route.useRouteContext();
-  const router = useRouter();
-
-  useEffect(() => {
-    const { data } = supabase.auth.onAuthStateChange((event) => {
-      if (!["SIGNED_IN", "SIGNED_OUT", "USER_UPDATED"].includes(event)) return;
-      router.invalidate();
-      if (event !== "SIGNED_OUT") queryClient.invalidateQueries();
-    });
-    return () => data.subscription.unsubscribe();
-  }, [queryClient, router]);
-
-  const { data: authSession } = useQuery({
-    queryKey: ["auth_session"],
-    queryFn: async () => {
-      const { data } = await supabase.auth.getSession();
-      return data.session;
-    },
-  });
-
-  const authUser = authSession?.user ?? null;
-
-  const { data: profile } = useQuery({
-    queryKey: ["profile", authUser?.id],
-    queryFn: () => (authUser ? fetchProfileByAuthId(authUser.id) : null),
-    enabled: !!authUser,
-  });
-
-  const { data: visualSettings } = useQuery({
-    queryKey: ["visual_settings"],
-    queryFn: fetchVisualSettings,
-  });
-
   return (
-    <IMProvider
-      authUser={authUser}
-      initialProfile={profile ?? null}
-      initialVisualSettings={visualSettings}
-    >
-      {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
+    <>
       <Outlet />
       <Toaster richColors position="top-right" />
-    </IMProvider>
+    </>
   );
 }
 
