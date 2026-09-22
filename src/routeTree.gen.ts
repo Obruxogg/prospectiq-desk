@@ -12,6 +12,10 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
+import { Route as AuthenticatedCrmRouteImport } from './routes/_authenticated/crm'
+import { Route as AuthenticatedSimulationRouteImport } from './routes/_authenticated/simulation'
+import { Route as AuthenticatedContactsIndexRouteImport } from './routes/_authenticated/contacts/index'
+import { Route as AuthenticatedContactsStudentIdRouteImport } from './routes/_authenticated/contacts/$studentId'
 
 const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
   id: '/_authenticated',
@@ -27,27 +31,81 @@ const AuthenticatedIndexRoute = AuthenticatedIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedCrmRoute = AuthenticatedCrmRouteImport.update({
+  id: '/crm',
+  path: '/crm',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedSimulationRoute = AuthenticatedSimulationRouteImport.update({
+  id: '/simulation',
+  path: '/simulation',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedContactsIndexRoute =
+  AuthenticatedContactsIndexRouteImport.update({
+    id: '/contacts/',
+    path: '/contacts/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedContactsStudentIdRoute =
+  AuthenticatedContactsStudentIdRouteImport.update({
+    id: '/contacts/$studentId',
+    path: '/contacts/$studentId',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof AuthenticatedIndexRoute
   '/auth': typeof AuthRoute
+  '/crm': typeof AuthenticatedCrmRoute
+  '/simulation': typeof AuthenticatedSimulationRoute
+  '/contacts/$studentId': typeof AuthenticatedContactsStudentIdRoute
+  '/contacts/': typeof AuthenticatedContactsIndexRoute
 }
 export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
+  '/crm': typeof AuthenticatedCrmRoute
+  '/simulation': typeof AuthenticatedSimulationRoute
   '/': typeof AuthenticatedIndexRoute
+  '/contacts/$studentId': typeof AuthenticatedContactsStudentIdRoute
+  '/contacts': typeof AuthenticatedContactsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
+  '/_authenticated/crm': typeof AuthenticatedCrmRoute
+  '/_authenticated/simulation': typeof AuthenticatedSimulationRoute
   '/_authenticated/': typeof AuthenticatedIndexRoute
+  '/_authenticated/contacts/$studentId': typeof AuthenticatedContactsStudentIdRoute
+  '/_authenticated/contacts/': typeof AuthenticatedContactsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/auth'
+  fullPaths:
+    | '/'
+    | '/auth'
+    | '/crm'
+    | '/simulation'
+    | '/contacts/$studentId'
+    | '/contacts/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/auth' | '/'
-  id: '__root__' | '/_authenticated' | '/auth' | '/_authenticated/'
+  to:
+    | '/auth'
+    | '/crm'
+    | '/simulation'
+    | '/'
+    | '/contacts/$studentId'
+    | '/contacts'
+  id:
+    | '__root__'
+    | '/_authenticated'
+    | '/auth'
+    | '/_authenticated/crm'
+    | '/_authenticated/simulation'
+    | '/_authenticated/'
+    | '/_authenticated/contacts/$studentId'
+    | '/_authenticated/contacts/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -78,15 +136,51 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/crm': {
+      id: '/_authenticated/crm'
+      path: '/crm'
+      fullPath: '/crm'
+      preLoaderRoute: typeof AuthenticatedCrmRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/simulation': {
+      id: '/_authenticated/simulation'
+      path: '/simulation'
+      fullPath: '/simulation'
+      preLoaderRoute: typeof AuthenticatedSimulationRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/contacts/': {
+      id: '/_authenticated/contacts/'
+      path: '/contacts'
+      fullPath: '/contacts/'
+      preLoaderRoute: typeof AuthenticatedContactsIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/contacts/$studentId': {
+      id: '/_authenticated/contacts/$studentId'
+      path: '/contacts/$studentId'
+      fullPath: '/contacts/$studentId'
+      preLoaderRoute: typeof AuthenticatedContactsStudentIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedCrmRoute: typeof AuthenticatedCrmRoute
+  AuthenticatedSimulationRoute: typeof AuthenticatedSimulationRoute
   AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
+  AuthenticatedContactsStudentIdRoute: typeof AuthenticatedContactsStudentIdRoute
+  AuthenticatedContactsIndexRoute: typeof AuthenticatedContactsIndexRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedCrmRoute: AuthenticatedCrmRoute,
+  AuthenticatedSimulationRoute: AuthenticatedSimulationRoute,
   AuthenticatedIndexRoute: AuthenticatedIndexRoute,
+  AuthenticatedContactsStudentIdRoute: AuthenticatedContactsStudentIdRoute,
+  AuthenticatedContactsIndexRoute: AuthenticatedContactsIndexRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
